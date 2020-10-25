@@ -8,6 +8,7 @@ def Newton_method(fun, initial, pace = 0.5, limitation = None):
     MAX_ERROR = 1e-7 # the cretirion of solved
     EPSILON = 1e-5 # small value of changing to calculate gradient
     MAX_ITER = int(1e8) # max number of iteration
+    MAX_RAPHSON = 10 # max turns of down-hill calculation
     DISPLAY_INTERVAL = 10 # every n steps to display the process
 
     # judge the direction of descent
@@ -16,8 +17,9 @@ def Newton_method(fun, initial, pace = 0.5, limitation = None):
     x = np.array(initial, dtype=float)
     for iter_times in range(0, MAX_ITER):
         Fx = fun(x)
-        if np.sum(abs(Fx)) < MAX_ERROR:
-            print(jacobian)
+        previous_deviation = np.sum(abs(Fx))
+        if previous_deviation < MAX_ERROR:
+            #print(jacobian)
             return x
 
         for i in range(0, len(x)):
@@ -46,12 +48,26 @@ def Newton_method(fun, initial, pace = 0.5, limitation = None):
 
         # reconsider the movement of x with the limitation
         move = consider_limitation(x, move, limitation)
-        x += move
+        x2 = x + move
+
+        # Newton-Raphson part
+        now_deviation = np.sum(abs(fun(x2)))
+        if now_deviation > previous_deviation:
+            for iter_raphson in range(0, MAX_RAPHSON):
+                if now_deviation < previous_deviation:
+                    print(iter_raphson)
+                    break
+                else:
+                    move /= 2
+                    x2 = x + move
+                    now_deviation = np.sum(abs(fun(x2)))
+
+        x = x2
 
         # display the progress
         if iter_times % DISPLAY_INTERVAL == 0:
             print('Iteration Times: ', iter_times)
-            print('Deviation Now: ', np.sum(abs(Fx)))
+            print('Deviation Now: ', now_deviation)
             print('x now: ', x)
 
 def norm(x):
